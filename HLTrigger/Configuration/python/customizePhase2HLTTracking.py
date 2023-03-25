@@ -93,6 +93,10 @@ def customisePhase2HLTForPatatrack(process):
 
     from HeterogeneousCore.CUDACore.SwitchProducerCUDA import SwitchProducerCUDA
 
+    if not hasattr(process, "CUDAService"):
+        from HeterogeneousCore.CUDAServices.CUDAService_cfi import CUDAService
+        process.add_(CUDAService)
+
     from RecoLocalTracker.SiPixelRecHits.pixelCPEFastESProducerPhase2_cfi import pixelCPEFastESProducerPhase2
     process.PixelCPEFastESProducerPhase2 = pixelCPEFastESProducerPhase2.clone()
     ### SiPixelClusters on GPU
@@ -183,6 +187,8 @@ def customisePhase2HLTForPatatrack(process):
         pixelRecHitSrc = "siPixelRecHitsCUDA",
         idealConditions = False,
         onGPU = True,
+        includeJumpingForwardDoublets = True,
+        minHitsPerNtuplet = 4
     )
 
     from RecoPixelVertexing.PixelTrackFitting.pixelTrackSoAFromCUDAPhase2_cfi import pixelTrackSoAFromCUDAPhase2 as _pixelTracksSoAPhase2
@@ -191,7 +197,9 @@ def customisePhase2HLTForPatatrack(process):
         cpu = _pixelTracksCUDAPhase2.clone(
             pixelRecHitSrc = "siPixelRecHitsCPU",
             idealConditions = False,
-            onGPU = False
+            onGPU = False,
+            includeJumpingForwardDoublets = True,
+        	minHitsPerNtuplet = 4
         ),
         cuda = _pixelTracksSoAPhase2.clone()
     )
