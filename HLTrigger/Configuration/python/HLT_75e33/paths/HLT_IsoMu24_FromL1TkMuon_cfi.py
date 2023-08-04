@@ -112,7 +112,7 @@ from ..modules.hltPhase2L3OITrackCandidates_cfi import *
 from ..modules.hltRpcRecHits_cfi import *
 from ..modules.hltPhase2TowerMakerForAll_cfi import *
 from ..modules.MeasurementTrackerEvent_cfi import *
-from ..modules.siPhase2Clusters_cfi import *
+from ..modules.hltPhase2SiClusters_cfi import *
 from ..modules.siPixelClusters_cfi import *
 from ..modules.siPixelClusterShapeCache_cfi import *
 from ..modules.siPixelRecHits_cfi import *
@@ -239,7 +239,7 @@ HLT_IsoMu24_FromL1TkMuon = cms.Path(
         hltPhase2L3OITrackCandidates,
         hltRpcRecHits,
         hltPhase2TowerMakerForAll,
-        siPhase2Clusters,
+        hltPhase2SiClusters,
         siPixelClusterShapeCache,
         siPixelClusters,
         siPixelRecHits,

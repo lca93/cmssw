@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 MeasurementTrackerEvent = cms.EDProducer("MeasurementTrackerEventProducer",
-    Phase2TrackerCluster1DProducer = cms.string('siPhase2Clusters'),
+    Phase2TrackerCluster1DProducer = cms.string('hltPhase2SiClusters'),
     badPixelFEDChannelCollectionLabels = cms.VInputTag("siPixelDigis"),
     inactivePixelDetectorLabels = cms.VInputTag(),
     inactiveStripDetectorLabels = cms.VInputTag("siStripDigis"),

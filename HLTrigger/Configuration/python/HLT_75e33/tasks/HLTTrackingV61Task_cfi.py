@@ -24,7 +24,7 @@ from ..modules.hltPhase2PixelTracksHitSeeds_cfi import *
 from ..modules.hltPhase2PixelTracksSeedLayers_cfi import *
 from ..modules.hltPhase2PixelTracks_cfi import *
 from ..modules.hltPhase2PixelVertices_cfi import *
-from ..modules.siPhase2Clusters_cfi import *
+from ..modules.hltPhase2SiClusters_cfi import *
 from ..modules.siPixelClusterShapeCache_cfi import *
 from ..modules.siPixelClusters_cfi import *
 from ..modules.siPixelRecHits_cfi import *
@@ -57,7 +57,7 @@ HLTTrackingV61Task = cms.Task(
     hltPhase2PixelTracksHitSeeds,
     hltPhase2PixelTracksSeedLayers,
     hltPhase2PixelVertices,
-    siPhase2Clusters,
+    hltPhase2SiClusters,
     siPixelClusterShapeCache,
     siPixelClusters,
     siPixelRecHits,
