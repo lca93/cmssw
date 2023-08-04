@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
-from ..tasks.pixeltrackerlocalrecoTask_cfi import *
+from ..tasks.hltPhase2PixeltrackerlocalrecoTask_cfi import *
 
 trackerlocalrecoTask = cms.Task(
-    pixeltrackerlocalrecoTask
+    hltPhase2PixeltrackerlocalrecoTask
 )
