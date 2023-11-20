@@ -4,6 +4,7 @@
    <version ClassVersion="10" checksum="915260007"/>
   </class>
   <class name="edm::Wrapper<reco::BeamSpot>"/>
+  <class name="edm::Wrapper<reco::BeamSpotExt>"/>
 
   <class name="BeamSpotPOD" persistent="false"/>
   <class name="edm::Wrapper<BeamSpotPOD>" persistent="false"/>
