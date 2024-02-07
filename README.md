@@ -1,6 +1,6 @@
 **Purpose of this branch**
 
-Run the BS fit on custom ranges defined by given timestamps *using Run3 data/releases*.  
+Run the BS fit on custom ranges defined by given timestamps **using Run3 data/releases**.  
 Useful for, e.g., determine the BS parameters during the scan steps in VdM scans.  
 
 In addition, these improvements are included:
