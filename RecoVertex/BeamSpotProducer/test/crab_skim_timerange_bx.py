@@ -58,17 +58,20 @@ def fetch_blocks(points):
   pool = Pool(args.streams)
   FILES   = 'dasgoclient --query="file dataset={D} run={R} lumi={L}"'
   BLOCKS  = 'dasgoclient --query="block file={F}"'
-  SIZE    = 'dasgoclient --query="block={B} | grep block.size"'
+  SIZE    = 'dasgoclient --query="{T}={B} | grep {T}.size"'
 
   sys.stdout.write("Fetching blocks...") ; sys.stdout.flush()
   queriesF  = list(set([FILES.format(D=args.dataset, R=p.scan.runn, L=l) for p in points for l in p.lumis]))
   files     = set(_ for f in pool.map(popen, queriesF) for _ in f)
   queriesB  = [BLOCKS.format(F=f) for f in files]
   blocks    = set(_ for b in pool.map(popen, queriesB) for _ in b)
-  queriesS  = [SIZE.format(B=b) for b in blocks]
-  size      = sum([int(_) for s in pool.map(popen, queriesS) for _ in s])
+  queriesSB = [SIZE.format(T='block', B=b) for b in blocks]
+  queriesSF = [SIZE.format(T='file' , B=f) for f in files]
+  sizeB     = sum([int(_) for s in pool.map(popen, queriesSB) for _ in s])
+  sizeF     = sum([int(_) for s in pool.map(popen, queriesSF) for _ in s])
   sys.stdout.write("\rFetching blocks...done\n") ; sys.stdout.flush()
-  print('''{F} files found, {B} blocks will be added to the crab task ({S} GB)'''.format(F=len(files), B=len(blocks), S=size>>30))
+  print('''{F} files found, {B} blocks will be added to the crab task ({S} GB)'''.format(F=len(files), B=len(blocks), S=sizeB>>30))
+  print('''Expected output size: less than {S} GB'''.format(S=sizeF>>30))
   return blocks
 
 lumijson  = json.load(open(args.input, 'r'))
@@ -78,7 +81,7 @@ points    = [p for s in scans for p in s.points]
 JOBNAME     = '_'.join([args.dataset.split('/')[1], os.path.basename(args.input).strip('.json')])
 RUNSTRING   = ','.join(str(s.runn)  for s in scans)
 TIMESTRING  = ','.join(s.times      for s in scans)
-BUNCHSTRING = ','.join(b for b in args.bunchcrossings)
+BUNCHSTRING = ','.join(b for b in args.bunchcrossing)
 OUTPUT      = '/store/user/{}/BeamSpot/'.format(os.environ['USER'])
 
 config = Configuration()
