@@ -40,8 +40,6 @@ class Point:
   ''' class for building a scan point object. 
   A Point instance identifies a beam step in a scan effort.
   '''
-  QUERYFILE         = 'dasgoclient --query=\"file dataset={D} run={R} lumi={L}\"'
-  QUERYBLOCK_BYFILE = 'dasgoclient --query=\"block file={F}\"'
   def __init__(self, scan, index):
     self.scan     = scan
     self.index    = index
