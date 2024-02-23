@@ -16,7 +16,7 @@ matching the given bunch crossing numbers.\n
 parser.add_argument('--input'         , required=True             , help='timestamp file from lumi')
 parser.add_argument('--storage'       , default='T3_IT_MIB'       , help='storage site')
 parser.add_argument('--dataset'       , required=True             , help='input dataset')
-parser.add_argument('--bunchcrossings', required=True             , help='list of bunchcrossings to select', nargs='+')
+parser.add_argument('--bunchcrossing' , required=True             , help='list of bunchcrossings to select', nargs='+')
 parser.add_argument('--workarea'      , default='TimeBX_skim'     , help='crab work area')
 parser.add_argument('--dryrun'        , action='store_true'       , help='don\'t run CRAB')
 parser.add_argument('--streams'       , default=10, type=int      , help='number of streams for fetching the block list')
