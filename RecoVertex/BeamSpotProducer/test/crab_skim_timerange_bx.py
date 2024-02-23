@@ -52,7 +52,7 @@ class Point:
 
 def popen(cmd): return tuple(l.strip('\n') for l in os.popen(cmd).readlines())
 def fetch_blocks(points):
-  ''' Qeries needed files (by dataset, run and lumi) from DAS.\n
+  ''' queries needed files (by dataset, run and lumi) from DAS.\n
   Use the file list to query the needed blocks.'''
   from multiprocessing import Pool
   pool = Pool(args.streams)
@@ -95,7 +95,7 @@ config.Data.inputDataset        = args.dataset
 config.Data.runRange            = RUNSTRING
 config.Site.storageSite         = args.storage
 config.JobType.psetName         = 'EventSkimming_byTime_byBX.py'
-config.Data.outLFNDirBase       = '/store/user/{U}/BeamSpot'.format(U=os.environ['USER'])
+config.Data.outLFNDirBase       = OUTPUT
 config.Data.inputBlocks         = list(fetch_blocks(points))
 config.JobType.pyCfgParams = [
   "bunchcrossing={}".format(BUNCHSTRING),
