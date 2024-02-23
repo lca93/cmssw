@@ -4,13 +4,13 @@ from CRABAPI.RawCommand import crabCommand
 import os, sys
 import json
 import argparse
-parser = argparse.ArgumentParser('''Submit jobs to skim events for VdM tasks.\n
+parser = argparse.ArgumentParser('''Submit jobs to skim events for VdM tasks.
 The script reads time ranges, run ranges and lumisections from LUMI json files. 
-The bunch crossings list is provided as an external argument.\n
-Each submission should correspond to a single dataset and a single VdM configuration (json file).\n
-The crab task is created block-wise to reduce the tape-recall time.\n
+The bunch crossings list is provided as an external argument.
+Each submission should correspond to a single dataset and a single VdM configuration (json file).
+The crab task is created block-wise to reduce the tape-recall time.
 The output consists of events falling in the time ranges specified in the json file, 
-matching the given bunch crossing numbers.\n
+matching the given bunch crossing numbers.
 [!] the output is saved in /store/user/$USER/BeamSpot/
 ''')
 parser.add_argument('--input'         , required=True             , help='timestamp file from lumi')
