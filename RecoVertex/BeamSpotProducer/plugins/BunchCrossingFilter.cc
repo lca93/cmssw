@@ -27,7 +27,6 @@ BunchCrossingFilter::BunchCrossingFilter(const edm::ParameterSet& pset):
       std::cout << "request bunch-crossing: " << bc << std::endl;
     }
   }
-  return;
 }
 
 bool BunchCrossingFilter::filter(edm::Event& event, const edm::EventSetup& setup){
