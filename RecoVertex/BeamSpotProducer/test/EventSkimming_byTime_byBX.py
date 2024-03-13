@@ -42,7 +42,7 @@ process.source = cms.Source("PoolSource",
 process.maxEvents = cms.untracked.PSet(input=cms.untracked.int32(options.maxEvents))
 process.options   = cms.untracked.PSet(wantSummary=cms.untracked.bool(True))
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.debugModules   = ['BeamSpotAnalyzer']
+process.MessageLogger.debugModules   = ['TimeRangeFilter', 'BunchCrossingFilter']
 process.MessageLogger.cerr.FwkReport = cms.untracked.PSet(reportEvery = cms.untracked.int32(1000))
 
 process.skim_by_time = cms.EDFilter("TimeRangeFilter",
