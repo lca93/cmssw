@@ -36,7 +36,6 @@ TimeRangeFilter::TimeRangeFilter(const edm::ParameterSet& pset):
       std::cout << "request time range " << start << "," << end << std::endl;
     }
   }
-  return;
 }
 
 bool TimeRangeFilter::filter(edm::Event& event, const edm::EventSetup& setup){
