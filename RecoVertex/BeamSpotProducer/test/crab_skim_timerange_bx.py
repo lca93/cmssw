@@ -16,10 +16,14 @@ matching the given bunch crossing numbers.
 parser.add_argument('--input'         , required=True             , help='timestamp file from lumi')
 parser.add_argument('--storage'       , default='T3_IT_MIB'       , help='storage site')
 parser.add_argument('--dataset'       , required=True             , help='input dataset')
-parser.add_argument('--bunchcrossing' , required=True             , help='list of bunchcrossings to select', nargs='+')
+parser.add_argument('--bunchcrossing' , required=True,nargs='+'   , help='list of bunchcrossings to select')
 parser.add_argument('--workarea'      , default='TimeBX_skim'     , help='crab work area')
+parser.add_argument('--subfolder'     , required=True             , help='subfolder name under /store/user/$USER/')
+parser.add_argument('--whitelist'     , default=[], nargs='+'     , help='subfolder name under /store/user/$USER/')
 parser.add_argument('--dryrun'        , action='store_true'       , help='don\'t run CRAB')
-parser.add_argument('--streams'       , default=10, type=int      , help='number of streams for fetching the block list')
+parser.add_argument('--streams'       , default=10    , type=int  , help='number of streams for fetching the block list')
+parser.add_argument('--maxMemoryMB'   , default=2499  , type=int  , help='requested job memory in MB')
+parser.add_argument('--unitsPerJob'   , default=100   , type=int  , help='crab parameter')
 
 args = parser.parse_args()
 
@@ -71,18 +75,23 @@ def fetch_blocks(points):
   sizeF     = sum([int(_) for s in pool.map(popen, queriesSF) for _ in s])
   sys.stdout.write("\rFetching blocks...done\n") ; sys.stdout.flush()
   print('''{F} files found, {B} blocks will be added to the crab task ({S} GB)'''.format(F=len(files), B=len(blocks), S=sizeB>>30))
-  print('''Expected output size: less than {S} GB'''.format(S=sizeF>>30))
+  #print('''Expected output size: less than {S} GB'''.format(S=sizeF>>30))
   return blocks
 
 lumijson  = json.load(open(args.input, 'r'))
 scans     = [Scan(label=os.path.basename(args.input).strip('.json'), json=lumijson, number=s['ScanNumber']-1) for s in lumijson['Scans']]
 points    = [p for s in scans for p in s.points]
+blocks    = list(fetch_blocks(points))
 
-JOBNAME     = '_'.join([args.dataset.split('/')[1], os.path.basename(args.input).strip('.json')])
+if not len(blocks):
+  print("[WARNING] no blocks match the requested conditions. Execution stops.")
+  sys.exit(1)
+
+JOBNAME     = '_'.join([args.dataset.replace('/', '_')[1:], os.path.basename(args.input).strip('.json')])
 RUNSTRING   = ','.join(str(s.runn)  for s in scans)
 TIMESTRING  = ','.join(s.times      for s in scans)
 BUNCHSTRING = ','.join(b for b in args.bunchcrossing)
-OUTPUT      = '/store/user/{}/BeamSpot/'.format(os.environ['USER'])
+OUTPUT      = '/store/user/{}/{}/'.format(os.environ['USER'], args.subfolder)
 
 config = Configuration()
 config.General.workArea         = args.workarea
@@ -92,17 +101,22 @@ config.JobType.pluginName       = 'Analysis'
 config.Data.publication         = False
 config.Data.useParent           = False
 config.Data.inputDBS            = 'global'
-config.Data.splitting           = 'FileBased' if args.dryrun else 'Automatic'
-config.Data.unitsPerJob         = 2700
+config.Data.splitting           = 'FileBased'
 config.Data.inputDataset        = args.dataset
 config.Data.runRange            = RUNSTRING
 config.Site.storageSite         = args.storage
 config.JobType.psetName         = 'EventSkimming_byTime_byBX.py'
+config.JobType.maxMemoryMB      = args.maxMemoryMB
 config.Data.outLFNDirBase       = OUTPUT
-config.Data.inputBlocks         = list(fetch_blocks(points))
+config.Data.inputBlocks         = blocks
+config.JobType.maxJobRuntimeMin = 60*24*7
 config.JobType.pyCfgParams = [
   "bunchcrossing={}".format(BUNCHSTRING),
   "timerange={}"    .format(TIMESTRING) ,
 ]
+if config.Data.splitting!='Automatic':
+  config.Data.unitsPerJob = args.unitsPerJob
+if len(args.whitelist):
+  config.Site.whitelist = args.whitelist
 
 crabCommand('submit', config=config, dryrun=args.dryrun)
