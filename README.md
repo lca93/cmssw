@@ -72,4 +72,4 @@ python3 submit_condor_timerange.py --lumijson 8381_11Nov22_114759_11Nov22_121408
 This step will produce multiple .txt files, among which BSFit\_Fill<FILL\_NUMBER>\_Run<RUN\_NUMBER>\_<SCAN\_NAME>\_<BUNCH\_CROSSING>\_<TIME\_RANGE>.txt.txt contains the fit results. Single .txt files can then be merged together using *cat*, if need be.
 - **formatting**: this step converts the output .txt files into a formatted tabular .txt file used by LUMI. DESCRIPTION TO BE ADDED.
 
-A .txt result file can be quicly plotted using [this](https://github.com/lguzzi/BSPlotter) repo.
+A .txt result file can be quickly plotted using [this](https://github.com/lguzzi/BSPlotter) repo.
