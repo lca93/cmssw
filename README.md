@@ -56,6 +56,10 @@ scram b -j 10
 cd RecoVertex/BeamSpotProducer/test  
 ```
 # van der Meer scans
+Before submitting vdM jobs, it might be useful to recall datasets from tape and store them in a trustful storage:
+```bash
+rucio add-rule cms:/DATASETNAME/CAMPAIGN/TIER 1 YOUR_FAVOURITE_T2 --lifetime 7776000 --activity "User AutoApprove" --ask-approval --comment "BeamSpot computation for VdM Scans"
+```
 van der Meer scan fitting happens in three steps:
 - **skimming**: event skimming is based on the time range and bunch crossing ID of the needed lumisections. The skimming is performed by the [BunchCrossingFilter.cc](RecoVertex/BeamSpotProducer/plugins/BunchCrossingFilter.cc) and [TimeRangeFilter.cc](RecoVertex/BeamSpotProducer/plugins/TimeRangeFilter.cc) plugins and a CMSSW configuration is in place ([EventSkimming_byTime_byBX.py](RecoVertex/BeamSpotProducer/test/EventSkimming_byTime_byBX.py)). A python script ([crab_skim_timerange_bx.py](RecoVertex/BeamSpotProducer/test/crab_skim_timerange_bx.py)) has been created in order to simplify the job scheduling. The script input is a LUMI .json file formatted similarly to [this one](https://gist.github.com/lguzzi/7276517bcf6d0a43f31818615ee2d4a5). The script must be run on the different input datasets and LUMI .json files needed. A command example is:
 ```bash
