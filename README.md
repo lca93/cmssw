@@ -55,9 +55,15 @@ git checkout mib/bsInTimeRange_Run3 RecoVertex/BeamSpotProducer/test/timestamps
 scram b -j 10  
 cd RecoVertex/BeamSpotProducer/test  
 ```
-
-In order to submit jobs to the CERN HTCondor system you can use the script `submit_RunFitOnTimeRange_forCondor.py`.
-You can see all the available options and needed inputs by doing 
+# van der Meer scans
+van der Meer scan fitting happens in three steps:
+- **skimming**: event skimming based on time range and bunch crossing ID is performed by the RecoVertex/BeamSpotProducer/plugins/BunchCrossingFilter.cc and RecoVertex/BeamSpotProducer/plugins/TimeRangeFilter.cc plugins and a CMSSW configuration is in place (RecoVertex/BeamSpotProducer/test/crab_skim_timerange_bx.py). A python script () has been created in order to simplify the job scheduling. It takes as input a LUMI .json file whose formatting should be similar to https://gist.github.com/lguzzi/7276517bcf6d0a43f31818615ee2d4a5. The script must be run on the different input datasets and LUMI .json files needed. A command example is:
+```bash
+python3 crab_skim_timerange_bx.py --input 8381_11Nov22_114759_11Nov22_121408.json --dataset /SpecialHLTPhysics15/Run2022F-PromptReco-v1/AOD --bunchcrossing 282 822 2944 3123 3302 --subfolder BeamSpot --maxMemoryMB 4999
 ```
-python submit_RunFitOnTimeRange_forCondor.py --help
+- **fitting**: the beam spot fitting is done by the RecoVertex/BeamSpotProducer/plugins/BeamSpotAnalyzer.cc plugin, and a flexible python configuration is already in place (). The fitting must be run on the required skimmed datasets for each input LUMI .json file. A command example is:
+```bash
+python3 submit_condor_timerange.py --lumijson 8381_11Nov22_114759_11Nov22_121408.json --bunchcrossing 208 282 548 822 1197 1376 2716 2944 3123 1081 1881 2653 2997 --globaltag 130X_dataRun3_Prompt_v3 --input /gwteras/cms/store/user/lguzzi/BeamSpot/SpecialHLTPhysics*/crab_SpecialHLTPhysics*_Run2023C-PromptReco-v*_AOD_VDM6/*/0000/*.root --jobdir VdM2023
 ```
+This step will produce multiple .txt files, among which BSFit_Fill<FILL_NUMBER>_Run<RUN_NUMBER>_<SCAN_NAME>_<BUNCH_CROSSING>_<TIME_RANGE>.txt.txt contains the fit results. Single .txt files can then be merged together using *cat*, if need be.
+- **formatting**: this step converts the output .txt files into a formatted tabular .txt file used by LUMI. DESCRIPTION TO BE ADDED.
