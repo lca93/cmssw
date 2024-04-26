@@ -19,10 +19,6 @@ public:
     nDigis_h = nDigis;
   }
 
-    void setNModules(uint32_t nModules) {
-    nModules_h = nModules;
-  }
-
   uint32_t nModules() const { return nModules_h; }
   uint32_t nDigis() const { return nDigis_h; }
 
