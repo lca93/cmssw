@@ -14,7 +14,7 @@
 #include "HeterogeneousCore/AlpakaInterface/interface/SimpleVector.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/config.h"
 
-#define GPU_DEBUG
+// #define GPU_DEBUG
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE::pixelClustering {
 
@@ -101,7 +101,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE::pixelClustering {
 
 #ifdef GPU_DEBUG
       if (cms::alpakatools::once_per_grid(acc)) {
-        printf("Starting to count modules to set module starts:");
+        printf("Starting to count modules to set module starts.");
       }
 #endif
       for (int32_t i : cms::alpakatools::uniform_elements(acc, numElements)) {

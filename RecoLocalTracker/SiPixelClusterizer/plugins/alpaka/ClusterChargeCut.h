@@ -27,11 +27,15 @@ namespace pixelClustering {
                                   const uint32_t numElements) const {
       constexpr int32_t maxNumClustersPerModules = TrackerTraits::maxNumClustersPerModules;
       
+      #ifdef GPU_DEBUG
       if (cms::alpakatools::once_per_grid(acc))
       {
+        printf("All digis before cut: \n");
         for(uint32_t i = 0; i<numElements;i++)
-          printf("PRE: %d %d %d %d %d \n",i,digi_view[i].rawIdArr(),digi_view[i].clus(),digi_view[i].pdigi(),digi_view[i].adc());
+          printf("%d %d %d %d %d \n",i,digi_view[i].rawIdArr(),digi_view[i].clus(),digi_view[i].pdigi(),digi_view[i].adc());
       }
+      #endif
+
       auto& charge = alpaka::declareSharedVar<int32_t[maxNumClustersPerModules], __COUNTER__>(acc);
       auto& ok = alpaka::declareSharedVar<uint8_t[maxNumClustersPerModules], __COUNTER__>(acc);
       auto& newclusId = alpaka::declareSharedVar<uint16_t[maxNumClustersPerModules], __COUNTER__>(acc);
@@ -43,8 +47,6 @@ namespace pixelClustering {
       
       auto endModule = clus_view[0].moduleStart();
 
-      // if (cms::alpakatools::once_per_block(acc))
-      //     printf("%d %d\n",__LINE__,endModule);
       for (auto module : cms::alpakatools::independent_groups(acc, endModule)) {
         auto firstPixel = clus_view[1 + module].moduleStart();
         auto thisModuleId = digi_view[firstPixel].moduleId();
@@ -66,8 +68,6 @@ namespace pixelClustering {
         uint32_t nclus = clus_view[thisModuleId].clusInModule();
         if (nclus == 0)
           return;
-        // if (cms::alpakatools::once_per_block(acc))
-//          printf("%d %d \n",module,__LINE__);
 
         if (cms::alpakatools::once_per_block(acc) && nclus > maxNumClustersPerModules)
           printf("Warning: too many clusters in module %u in block %u: %u > %d\n",
@@ -90,8 +90,6 @@ namespace pixelClustering {
           }
           nclus = maxNumClustersPerModules;
         }
-        // if (cms::alpakatools::once_per_block(acc))
-//          printf("%d %d \n",module,__LINE__);
 
 #ifdef GPU_DEBUG
         if (thisModuleId % 100 == 1)
@@ -104,8 +102,7 @@ namespace pixelClustering {
           charge[i] = 0;
         }
         alpaka::syncBlockThreads(acc);
-        // if (cms::alpakatools::once_per_block(acc))
-        //   printf("%d \n",__LINE__);
+
         for (auto i : cms::alpakatools::independent_group_elements(acc, firstPixel, numElements)) {
           if (digi_view[i].moduleId() == invalidModuleId)
             continue;  // not valid
@@ -117,8 +114,6 @@ namespace pixelClustering {
                             alpaka::hierarchy::Threads{});
         }
         alpaka::syncBlockThreads(acc);
-        // if (cms::alpakatools::once_per_block(acc))
-//          printf("%d %d \n",module,__LINE__);
 
         auto chargeCut = clusterThresholds.getThresholdForLayerOnCondition(thisModuleId < startBPIX2);
 
@@ -126,16 +121,14 @@ namespace pixelClustering {
         for (auto i : cms::alpakatools::independent_group_elements(acc, nclus)) {
           newclusId[i] = ok[i] = (charge[i] >= chargeCut) ? 1 : 0;
           if (0 == ok[i])
-            good &= false;
-          printf("cut %d %d %d %d %d %d %d \n",i, thisModuleId,newclusId[i],ok[i],charge[i],chargeCut,good);
+            good &= false; //better than simple assignment in case of race? 
+          #ifdef GPU_DEBUG
+            printf("Cutting pix %d in module %d newId %d ok? %d charge %d cut %d -> good %d \n",i, thisModuleId,newclusId[i],ok[i],charge[i],chargeCut,good);
+          #endif
         }
-        // if (cms::alpakatools::once_per_block(acc))
-//          printf("%d %d \n",module,__LINE__);
         // if all clusters are above threshold, do nothing
-        // if (alpaka::syncBlockThreadsPredicate<alpaka::BlockAnd>(acc, good))
-        //   continue;
-        // if (cms::alpakatools::once_per_block(acc))
-//          printf("%d %d \n",module,__LINE__);
+        if (alpaka::syncBlockThreadsPredicate<alpaka::BlockAnd>(acc, good))
+          continue;
 
         // renumber
         auto& ws = alpaka::declareSharedVar<uint16_t[32], __COUNTER__>(acc);
@@ -155,8 +148,6 @@ namespace pixelClustering {
             alpaka::syncBlockThreads(acc);
           }
         }
-        // if (cms::alpakatools::once_per_block(acc))
-//          printf("%d %d \n",module,__LINE__);
 
         ALPAKA_ASSERT_ACC(nclus >= newclusId[nclus - 1]);
 
@@ -176,18 +167,17 @@ namespace pixelClustering {
           else
             digi_view[i].clus() = newclusId[digi_view[i].clus()] - 1;
         }
-        // if (cms::alpakatools::once_per_block(acc))
-//          printf("%d %d \n",module,__LINE__);
 
         // done
         alpaka::syncBlockThreads(acc);
-
+#ifdef GPU_DEBUG
         if (cms::alpakatools::once_per_grid(acc))
         {
+          printf("All digis AFTER cut: \n");
           for(uint32_t i = 0; i<numElements;i++)
-            printf("AFTER: %d %d %d %d %d \n",i,digi_view[i].rawIdArr(),digi_view[i].clus(),digi_view[i].pdigi(),digi_view[i].adc());
+            printf("%d %d %d %d %d \n",i,digi_view[i].rawIdArr(),digi_view[i].clus(),digi_view[i].pdigi(),digi_view[i].adc());
         }
-
+#endif
       }
     }
   };

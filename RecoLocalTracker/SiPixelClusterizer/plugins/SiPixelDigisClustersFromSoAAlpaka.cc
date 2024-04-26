@@ -21,8 +21,8 @@
 // local include(s)
 #include "PixelClusterizerBase.h"
 
-#define EDM_ML_DEBUG
-#define GPU_DEBUG
+// #define EDM_ML_DEBUG
+// #define GPU_DEBUG
 
 template <typename TrackerTraits>
 class SiPixelDigisClustersFromSoAAlpaka : public edm::global::EDProducer<> {
@@ -139,9 +139,7 @@ void SiPixelDigisClustersFromSoAAlpaka<TrackerTraits>::produce(edm::StreamID,
 #ifdef EDM_ML_DEBUG
       ++totClustersFilled;
       const auto& cluster{spc.back()};
-      // LogDebug("SiPixelDigisClustersFromSoAAlpaka")
-      std::cout << "putting in this cluster " << ic << " " << cluster.charge() << " " << cluster.pixelADC().size()
-                << "\n";
+      LogDebug("SiPixelDigisClustersFromSoAAlpaka") << "putting in this cluster " << ic << " " << cluster.charge() << " " << cluster.pixelADC().size() << "\n";
 #endif
       std::push_heap(spc.begin(), spc.end(), [](SiPixelCluster const& cl1, SiPixelCluster const& cl2) {
         return cl1.minPixelRow() < cl2.minPixelRow();
