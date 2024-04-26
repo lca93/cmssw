@@ -381,7 +381,7 @@ namespace pixelTopology {
     static constexpr uint16_t numberOfModules = 3892;
 
     // 1024 bins, 10 bits
-    static constexpr uint16_t clusterBinning = 1024;
+    static constexpr uint16_t clusterBinning = 896;
     static constexpr uint16_t clusterBits = 10;
 
     static constexpr uint16_t numberOfModulesInBarrel = 756;

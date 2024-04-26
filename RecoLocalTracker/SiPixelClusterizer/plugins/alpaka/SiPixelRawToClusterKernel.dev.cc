@@ -432,7 +432,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     struct FillHitsModuleStart {
       template <typename TAcc>
       ALPAKA_FN_ACC void operator()(const TAcc &acc, SiPixelClustersSoAView clus_view) const {
-        ALPAKA_ASSERT_ACC(TrackerTraits::numberOfModules < 2048);  // easy to extend at least till 32*1024
+        ALPAKA_ASSERT_ACC(TrackerTraits::numberOfModules < 4096);  // easy to extend at least till 32*1024
 
         constexpr int numberOfModules = TrackerTraits::numberOfModules;
         constexpr uint32_t maxHitsInModule = TrackerTraits::maxHitsInModule;
@@ -487,7 +487,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
           }
           alpaka::syncBlockThreads(acc);
         }
-#ifdef GPU_DEBUG
+#ifdef GPU_DEBUGx
         ALPAKA_ASSERT_ACC(0 == clus_view[1].moduleStart());
         auto c0 = std::min(maxHitsInModule, clus_view[2].clusModuleStart());
         ALPAKA_ASSERT_ACC(c0 == clus_view[2].moduleStart());
@@ -700,6 +700,32 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         const SiPixelClusterThresholds clusterThresholds,
         SiPixelDigisSoAView &digis_view,
         const uint32_t numDigis) {
+      
+      auto digisModule_h = cms::alpakatools::make_device_view<uint16_t>(alpaka::getDev(queue), digis_view.moduleId(), numDigis);
+      auto digisXX_h = cms::alpakatools::make_device_view<uint16_t>(alpaka::getDev(queue), digis_view.xx(), numDigis);
+      auto digisYY_h = cms::alpakatools::make_device_view<uint16_t>(alpaka::getDev(queue), digis_view.yy(), numDigis);
+      auto digisADC_h = cms::alpakatools::make_device_view<uint16_t>(alpaka::getDev(queue), digis_view.adc(), numDigis);
+
+      auto digisPacked_h = cms::alpakatools::make_device_view<uint32_t>(alpaka::getDev(queue), digis_view.pdigi(), numDigis);
+      auto digisRawId_h = cms::alpakatools::make_device_view<uint32_t>(alpaka::getDev(queue), digis_view.rawIdArr(), numDigis);
+
+      digis_d = SiPixelDigisSoACollection(numDigis, queue);
+
+      auto digisModule_d = cms::alpakatools::make_device_view<uint16_t>(alpaka::getDev(queue), digis_d->view().moduleId(), numDigis);
+      auto digisXX_d = cms::alpakatools::make_device_view<uint16_t>(alpaka::getDev(queue), digis_d->view().xx(), numDigis);
+      auto digisYY_d = cms::alpakatools::make_device_view<uint16_t>(alpaka::getDev(queue), digis_d->view().yy(), numDigis);
+      auto digisADC_d = cms::alpakatools::make_device_view<uint16_t>(alpaka::getDev(queue), digis_d->view().adc(), numDigis);
+
+      auto digisPacked_d = cms::alpakatools::make_device_view<uint32_t>(alpaka::getDev(queue), digis_d->view().pdigi(), numDigis);
+      auto digisRawId_d = cms::alpakatools::make_device_view<uint32_t>(alpaka::getDev(queue), digis_d->view().rawIdArr(), numDigis);
+      
+      alpaka::memcpy(queue, digisModule_d, digisModule_h);
+      alpaka::memcpy(queue, digisXX_d, digisXX_h);
+      alpaka::memcpy(queue, digisYY_d, digisYY_h);
+      alpaka::memcpy(queue, digisADC_d, digisADC_h);
+      alpaka::memcpy(queue, digisPacked_d, digisPacked_h);
+      alpaka::memcpy(queue, digisRawId_d, digisRawId_h);
+
       using namespace pixelClustering;
       using pixelTopology::Phase2;
       nDigis = numDigis;
@@ -711,7 +737,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       const auto workDiv = cms::alpakatools::make_workdiv<Acc1D>(blocks, threadsPerBlockOrElementsPerThread);
 
       alpaka::exec<Acc1D>(
-          queue, workDiv, calibPixel::CalibDigisPhase2{}, clusterThresholds, digis_view, clusters_d->view(), numDigis);
+          queue, workDiv, calibPixel::CalibDigisPhase2{}, clusterThresholds, digis_d->view(), clusters_d->view(), numDigis);
 
 #ifdef GPU_DEBUG
       alpaka::wait(queue);
@@ -719,7 +745,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
                 << " threadsPerBlockOrElementsPerThread\n";
 #endif
       alpaka::exec<Acc1D>(
-          queue, workDiv, CountModules<pixelTopology::Phase2>{}, digis_view, clusters_d->view(), numDigis);
+          queue, workDiv, CountModules<pixelTopology::Phase2>{}, digis_d->view(), clusters_d->view(), numDigis);
 
       auto moduleStartFirstElement =
           cms::alpakatools::make_device_view(alpaka::getDev(queue), clusters_d->view().moduleStart(), 1u);
@@ -734,7 +760,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
                 << " threadsPerBlockOrElementsPerThread\n";
 #endif
       alpaka::exec<Acc1D>(
-          queue, workDivMaxNumModules, FindClus<TrackerTraits>{}, digis_view, clusters_d->view(), numDigis);
+          queue, workDivMaxNumModules, FindClus<TrackerTraits>{}, digis_d->view(), clusters_d->view(), numDigis);
 #ifdef GPU_DEBUG
       alpaka::wait(queue);
 #endif
@@ -743,7 +769,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       alpaka::exec<Acc1D>(queue,
                           workDivMaxNumModules,
                           ::pixelClustering::ClusterChargeCut<TrackerTraits>{},
-                          digis_view,
+                          digis_d->view(),
                           clusters_d->view(),
                           clusterThresholds,
                           numDigis);
