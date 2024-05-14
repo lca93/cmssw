@@ -92,7 +92,7 @@ def customizeHLTforAlpakaPixelRecoTracking(process):
     '''Customisation to introduce the Pixel-Track Reconstruction in Alpaka
     '''
     # copied from https://github.com/cms-sw/cmssw/blob/CMSSW_14_1_X/Geometry/CommonTopologies/interface/SimplePixelTopology.h 
-    process.hltPixelTracksSoA = cms.EDProducer('CAHitNtupletAlpakaPhase2@alpaka',
+    process.hltPhase2PixelTracksSoA = cms.EDProducer('CAHitNtupletAlpakaPhase2@alpaka',
         pixelRecHitSrc = cms.InputTag('siPixelRecHitsSoA'),
         CPE = cms.string('PixelCPEFastParamsPhase2'),
         ptmin = cms.double(0.9),
@@ -146,14 +146,14 @@ def customizeHLTforAlpakaPixelRecoTracking(process):
             backend = cms.untracked.string('')
         )
     )
-    process.hltPixelTracks = cms.EDProducer("PixelTrackProducerFromSoAAlpakaPhase2",
+    process.hltPhase2PixelTracks = cms.EDProducer("PixelTrackProducerFromSoAAlpakaPhase2",
         beamSpot = cms.InputTag("hltOnlineBeamSpot"),
         minNumberOfHits = cms.int32(0),
         minQuality = cms.string('loose'),
         pixelRecHitLegacySrc = cms.InputTag("siPixelRecHits"),
-        trackSrc = cms.InputTag("hltPixelTracksSoA")
+        trackSrc = cms.InputTag("hltPhase2PixelTracksSoA")
     )
-    process.hltPhase2PixelTracksSequence = cms.Sequence(process.hltPixelTracksSoA+process.hltPixelTracks)
+    process.hltPhase2PixelTracksSequence = cms.Sequence(process.hltPhase2PixelTracksSoA+process.hltPhase2PixelTracks)
 
     return process
 
