@@ -412,6 +412,14 @@ void TrackToTrackComparisonHists::book_generic_tracks_histos(DQMStore::IBooker& 
                                      Pt_nbin,
                                      Pt_rangeMin,
                                      Pt_rangeMax);
+  (mes.h_phi_vs_eta) = ibooker.book2D(label + "_phiVSeta",
+                                     "track #phi vs #eta",
+                                     Eta_nbin,
+                                     Eta_rangeMin,
+                                     Eta_rangeMax,
+                                     Phi_nbin,
+                                     Phi_rangeMin,
+                                     Phi_rangeMax);
 
   // counts of tracks vs lumi
   // for this moment, xmin,xmax and binning are hardcoded, maybe in future in a config file!
@@ -515,6 +523,7 @@ void TrackToTrackComparisonHists::fill_generic_tracks_histos(generalME& mes,
     (mes.h_onlinelumi)->Fill(onlinelumi);
     (mes.h_ls)->Fill(ls);
     (mes.h_PU)->Fill(PU);
+    (mes.h_phi_vs_eta)->Fill(eta, phi);
   }
 
   if (pTOnPlateau || !requirePlateau) {

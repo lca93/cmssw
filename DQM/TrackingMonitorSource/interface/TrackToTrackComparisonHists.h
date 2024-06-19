@@ -43,6 +43,7 @@ public:
     MonitorElement *h_tracks, *h_pt, *h_eta, *h_phi, *h_dxy, *h_dz, *h_dxyWRTpv, *h_dzWRTpv, *h_charge, *h_hits;
     MonitorElement *h_dRmin, *h_dRmin_l;
     MonitorElement* h_pt_vs_eta;
+    MonitorElement* h_phi_vs_eta;
     MonitorElement *h_onlinelumi, *h_PU, *h_ls;
   };
 

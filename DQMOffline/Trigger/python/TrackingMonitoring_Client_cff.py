@@ -47,6 +47,7 @@ TrackToTrackEfficiencies = DQMEDHarvester("DQMGenericClient",
         "Eff_OnlineLumi      'Relative Efficiency vs OnlineLumi;OnlineLumi E30 [Hz cm^{-2}];relative efficiency' ref_matched_onlinelumi ref_onlinelumi  eff",
         "Eff_LS              'Relative Efficiency vs LS;LS;relative efficiency'                 ref_matched_ls          ref_ls          eff",
         "Eff_PU              'Relative Efficiency vs PU;PU;relative efficiency'                 ref_matched_PU          ref_PU          eff",
+        "Eff_phiVSeta        'Relative Efficiency vs phiVSeta;#eta;#phi'                        ref_matched_phiVSeta    ref_phiVSeta    eff",
 
         "FakeRate_pt         'Relative Fake Rate vs Pt;#P_T;relative fake rate'                 mon_unMatched_pt        mon_pt          eff",
         "FakeRate_eta        'Relative Fake Rate vs Eta;#eta;relative fake rate'                mon_unMatched_eta       mon_eta         eff",
@@ -60,6 +61,8 @@ TrackToTrackEfficiencies = DQMEDHarvester("DQMGenericClient",
         "FakeRate_OnlineLumi 'Relative Fake Rate vs OnlineLumi;OnlineLumi E30 [Hz cm^{-2}];relative efficiency' mon_unMatched_onlinelumi mon_onlinelumi  eff",
         "FakeRate_LS         'Relative Fake Rate vs LS;LS;relative efficiency'                  mon_unMatched_ls        mon_ls          eff",
         "FakeRate_PU         'Relative Fake Rate vs PU;PU;relative efficiency'                  mon_unMatched_PU        mon_PU          eff",
+        "FakeRate_phiVSeta   'Relative Fake Rate vs phiVSeta;#eta;#phi'                         mon_unMatched_phiVSeta  mon_phiVSeta    eff",
+
     ),
 )
 
