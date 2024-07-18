@@ -4,7 +4,6 @@ from HeterogeneousCore.AlpakaCore.functions import *
 
 def AlpakaHLTPixelRecoLocal(process):
     '''Customisation to introduce the Local Pixel Reconstruction in Alpaka.
-    The "FromAlpaka" label is appended to the new collections to avoid conflicts in the simplified menu
     '''
     process.hltESPSiPixelCablingSoA = cms.ESProducer('SiPixelCablingSoAESProducer@alpaka', 
             CablingMapLabel = cms.string(''),
@@ -39,15 +38,15 @@ def AlpakaHLTPixelRecoLocal(process):
             backend = cms.untracked.string('')
         )
     )
-    process.siPixelClustersFromAlpaka = cms.EDProducer('SiPixelDigisClustersFromSoAAlpakaPhase2',
+    process.siPixelClusters = cms.EDProducer('SiPixelDigisClustersFromSoAAlpakaPhase2',
         src = cms.InputTag('siPixelClustersSoA'),
         clusterThreshold_layer1 = cms.int32(4000),
         clusterThreshold_otherLayers = cms.int32(4000),
         produceDigis = cms.bool(False),
         storeDigis = cms.bool(False)
     )
-    process.siPixelClusterShapeCacheFromAlpaka = cms.EDProducer('SiPixelClusterShapeCacheProducer',
-        src = cms.InputTag('siPixelClustersSoA' ),
+    process.siPixelClusterShapeCache = cms.EDProducer('SiPixelClusterShapeCacheProducer',
+        src = cms.InputTag('siPixelClusters' ),
         onDemand = cms.bool( False )
     )
     process.siPixelRecHitsSoA = cms.EDProducer('SiPixelRecHitAlpakaPhase2@alpaka',
@@ -60,20 +59,30 @@ def AlpakaHLTPixelRecoLocal(process):
             backend = cms.untracked.string('')
         )
     )
-    process.siPixelRecHitsFromAlpaka = cms.EDProducer('SiPixelRecHitFromSoAAlpakaPhase2',
+    process.siPixelRecHits = cms.EDProducer('SiPixelRecHitFromSoAAlpakaPhase2',
         pixelRecHitSrc = cms.InputTag('siPixelRecHitsSoA'),
-        src = cms.InputTag('siPixelClustersFromAlpaka'),
-    )
-    process.itLocalRecoSequenceFromAlpaka = cms.Sequence(process.hltOnlineBeamSpotDevice
-        +process.siPhase2Clusters
-        +process.siPixelClustersSoA
-        +process.siPixelClustersFromAlpaka
-        #+process.siPixelClusterShapeCache  # disable for tracking only but more attention is needed for the full simplified menu
-        #+process.siPixelDigis              # not needed when copying digis from sim
-        +process.siPixelRecHitsSoA
-        +process.siPixelRecHitsFromAlpaka
+        src = cms.InputTag('siPixelClusters'),
     )
 
+    process.HLTDoLocalPixelSequence = cms.Sequence(
+         process.siPixelClustersSoA
+        +process.siPixelClusters
+        +process.siPixelClusterShapeCache  # should we disable this? Still needed by tracker muons
+        #+process.siPixelDigis             # not needed when copying digis from sim
+        +process.siPixelRecHitsSoA
+        +process.siPixelRecHits
+    )
+    process.HLTDoLocalStripSequence = cms.Sequence(
+        process.siPhase2Clusters
+    )
+    process.itLocalRecoSequence = cms.Sequence(
+         process.HLTDoLocalStripSequence
+        +process.HLTDoLocalPixelSequence
+    )
+    process.HLTBeamSpotSequence = cms.Sequence(
+         process.hltOnlineBeamSpot
+        +process.hltOnlineBeamSpotDevice
+    )
     return process
 
 def AlpakaHLTPixelRecoTracking(process):
@@ -92,7 +101,7 @@ def AlpakaHLTPixelRecoTracking(process):
         earlyFishbone = cms.bool(True),
         lateFishbone = cms.bool(False),
         fillStatistics = cms.bool(False),
-        minHitsPerNtuplet = cms.uint32(3),
+        minHitsPerNtuplet = cms.uint32(4),
         phiCuts = cms.vint32(
             522, 522, 522, 626, 730, 730, 626, 730, 730, 522, 522,
             522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522,
@@ -134,90 +143,102 @@ def AlpakaHLTPixelRecoTracking(process):
             backend = cms.untracked.string('')
         )
     )
-    process.hltPhase2PixelTracksFromAlpaka = cms.EDProducer("PixelTrackProducerFromSoAAlpakaPhase2",
+    process.hltPhase2PixelTracks = cms.EDProducer("PixelTrackProducerFromSoAAlpakaPhase2",
         beamSpot = cms.InputTag("hltOnlineBeamSpot"),
         minNumberOfHits = cms.int32(0),
-        minQuality = cms.string('loose'),
-        pixelRecHitLegacySrc = cms.InputTag("siPixelRecHitsFromAlpaka"),
+        minQuality = cms.string('tight'),
+        pixelRecHitLegacySrc = cms.InputTag("siPixelRecHits"),
         trackSrc = cms.InputTag("hltPhase2PixelTracksSoA")
     )
-    process.hltPhase2PixelTracksSequenceFromAlpaka = cms.Sequence(process.hltPhase2PixelTracksSoA+process.hltPhase2PixelTracksFromAlpaka)
-
+    process.hltPhase2PixelTracksSequence = cms.Sequence(
+         process.HLTBeamSpotSequence
+        +process.hltPhase2PixelTracksAndHighPtStepTrackingRegions # needed by highPtTripletStep iteration
+        +process.hltPhase2PixelFitterByHelixProjections # needed by tracker muons
+        +process.hltPhase2PixelTrackFilterByKinematics  # needed by tracker muons
+        +process.hltPhase2PixelTracksSoA
+        +process.hltPhase2PixelTracks
+    )
     return process
 
-def AlpakaHLTFullTrackingSingleIteration(process):
+def AlpakaHLTFullTracking(process):
     # original cfg at hand as in 14_1_0_pre4 simplified menu 
     # https://lguzzi.web.cern.ch/lguzzi/Tracking/Phase2/hlt-dump_simplifiedMenu_14_1_0_pre4.txt
-    ''' track building seeded by hltPhase2PixelTracks, possibly from patatrack
-    (copied from initialStep).
-    The "FromAlpaka" label is appended to the new collections to avoid conflicts in the simplified menu
+    ''' track building seeded by hltPhase2PixelTracks. This configuration runs the initialStep
+    and the highPtTripletStep
     '''
-    process.hltPhase2PixelVerticesFromAlpaka = process.hltPhase2PixelVertices.clone()
-    process.hltPhase2PixelVerticesFromAlpaka.TrackCollection = cms.InputTag("hltPhase2PixelTracksFromAlpaka")
-
-    process.MeasurementTrackerEventFromAlpaka = process.MeasurementTrackerEvent.clone()
-    process.MeasurementTrackerEventFromAlpaka.pixelClusterProducer = cms.string('siPixelClustersFromAlpaka')
-
-    process.initialStepSeedsFromAlpaka = process.initialStepSeeds.clone()
-    process.initialStepSeedsFromAlpaka.InputCollection = cms.InputTag("hltPhase2PixelTracksFromAlpaka")
-
-    process.initialStepTrackCandidatesFromAlpaka = process.initialStepTrackCandidates.clone()
-    process.initialStepTrackCandidatesFromAlpaka.MeasurementTrackerEvent    = cms.InputTag("MeasurementTrackerEventFromAlpaka")
-    process.initialStepTrackCandidatesFromAlpaka.src                        = cms.InputTag("initialStepSeedsFromAlpaka")
-
-    process.initialStepTracksFromAlpaka = process.initialStepTracks.clone()
-    process.initialStepTracksFromAlpaka.MeasurementTrackerEvent = cms.InputTag("MeasurementTrackerEventFromAlpaka")
-    process.initialStepTracksFromAlpaka.AlgorithmName           = cms.string('initialStepFromAlpaka')
-    process.initialStepTracksFromAlpaka.src                     = cms.InputTag("initialStepTrackCandidatesFromAlpaka")
-
-    process.initialStepTrackCutClassifierFromAlpaka = process.initialStepTrackCutClassifier.clone()
-    process.initialStepTrackCutClassifierFromAlpaka.src         = cms.InputTag("initialStepTracksFromAlpaka")
-    process.initialStepTrackCutClassifierFromAlpaka.vertices    = cms.InputTag("hltPhase2PixelVerticesFromAlpaka")
-
-    process.generalTracksFromAlpaka = process.initialStepTrackSelectionHighPurity.clone()
-    process.generalTracksFromAlpaka.originalMVAVals     = cms.InputTag("initialStepTrackCutClassifierFromAlpaka","MVAValues")
-    process.generalTracksFromAlpaka.originalQualVals    = cms.InputTag("initialStepTrackCutClassifierFromAlpaka","QualityMasks")
-    process.generalTracksFromAlpaka.originalSource      = cms.InputTag("initialStepTracksFromAlpaka")
-
-    process.hltPhase2TrackingSingleIterFromAlpaka = cms.Sequence(
-         process.hltPhase2PixelVerticesFromAlpaka
-        +process.MeasurementTrackerEventFromAlpaka
-        +process.initialStepSeedsFromAlpaka
-        +process.initialStepTrackCandidatesFromAlpaka
-        +process.initialStepTracksFromAlpaka
-        +process.initialStepTrackCutClassifierFromAlpaka
-        +process.generalTracksFromAlpaka
+    process.HLTTrackingV61Sequence = cms.Sequence(
+         process.itLocalRecoSequence
+        +process.otLocalRecoSequence
+        +process.trackerClusterCheck
+        +process.hltPhase2PixelTracksSequence
+        +process.hltPhase2PixelVertices
+        +process.initialStepSequence
+        +process.highPtTripletStepSequence
+        +process.generalTracks
     )
-
     return process
 
 def AlpakaHLTTrackingPath(process):
-    ''' Create a tracking-only sequence to test the configuration.
+    ''' Create a tracking-only path
     '''
     process.HLT_AlpakaTrackingPath = cms.Path()
-    process.HLT_AlpakaTrackingPath.insert(item=process.HLTBeginSequence                       , index=len(process.HLT_AlpakaTrackingPath.moduleNames()))
-    process.HLT_AlpakaTrackingPath.insert(item=process.itLocalRecoSequenceFromAlpaka          , index=len(process.HLT_AlpakaTrackingPath.moduleNames()))
-    process.HLT_AlpakaTrackingPath.insert(item=process.hltPhase2PixelTracksSequenceFromAlpaka , index=len(process.HLT_AlpakaTrackingPath.moduleNames()))
-    if hasattr(process, 'hltPhase2TrackingSingleIterFromAlpaka'):
-        process.HLT_AlpakaTrackingPath.insert(item=process.hltPhase2TrackingSingleIterFromAlpaka, index=len(process.HLT_AlpakaTrackingPath.moduleNames()))
-    process.HLT_AlpakaTrackingPath.insert(item=process.HLTEndSequence                         , index=len(process.HLT_AlpakaTrackingPath.moduleNames()))
+    process.HLT_AlpakaTrackingPath.insert(item=process.HLTBeginSequence         , index=len(process.HLT_AlpakaTrackingPath.moduleNames()))
+    process.HLT_AlpakaTrackingPath.insert(item=process.HLTTrackingV61Sequence   , index=len(process.HLT_AlpakaTrackingPath.moduleNames()))
+    process.HLT_AlpakaTrackingPath.insert(item=process.HLTEndSequence           , index=len(process.HLT_AlpakaTrackingPath.moduleNames()))
 
-    process.FEVTDEBUGHLTEventContent.outputCommands.append('keep *_*FromAlpaka_*_reHLT')
+    process.FEVTDEBUGHLTEventContent.outputCommands.append('keep *_siPixelClusters_*_reHLT')
+    process.FEVTDEBUGHLTEventContent.outputCommands.append('keep *_siPixelRecHits_*_reHLT')
+    process.FEVTDEBUGHLTEventContent.outputCommands.append('keep *_hltPhase2PixelTracks_*_reHLT')
+    process.FEVTDEBUGHLTEventContent.outputCommands.append('keep *_generalTracks_*_reHLT')
+    process.FEVTDEBUGHLTEventContent.outputCommands.append('drop IntermediateHitDoublets_hltElePixelHitDoubletsL1Seeded__reHLT')            # remove warning
+    process.FEVTDEBUGHLTEventContent.outputCommands.append('drop IntermediateHitDoublets_hltElePixelHitDoubletsUnseeded__reHLT')            # remove warning
+    process.FEVTDEBUGHLTEventContent.outputCommands.append('drop RegionsSeedingHitSets_hltElePixelHitDoubletsForTripletsL1Seeded__reHLT')   # remove warning
+    process.FEVTDEBUGHLTEventContent.outputCommands.append('drop RegionsSeedingHitSets_hltElePixelHitDoubletsForTripletsUnseeded__reHLT')   # remove warning
     process.outputmodule = cms.EndPath(process.FEVTDEBUGHLToutput)
     process.schedule.insert(-4, process.HLT_AlpakaTrackingPath)
     return process
 
 def customizeHLTforAlpaka(process):
+    ''' main customization function. Runs the full menu with tracking done
+    in two iterations (initialStep and highPtTripletStep) using patatrack pixel tracks
+    '''
     process.load("HeterogeneousCore.AlpakaCore.ProcessAcceleratorAlpaka_cfi")
     process.load('Configuration.StandardSequences.Accelerators_cff')
     process = AlpakaHLTPixelRecoLocal(process)
     process = AlpakaHLTPixelRecoTracking(process)
-    process = AlpakaHLTFullTrackingSingleIteration(process)
-    process = AlpakaHLTTrackingPath(process)
+    process = AlpakaHLTFullTracking(process)
+    return process
+
+def customizeHLTforAlpakaSingleIteration(process):
+    ''' main customization function. Runs the full menu with tracking done
+    in a single iteration (initialStep) using patatrack pixel tracks
+    '''
+    process = customizeHLTforAlpaka(process)
+    process.generalTracks = process.initialStepTrackSelectionHighPurity.clone()
+    process.initialStepSequence.remove(process.initialStepTrackSelectionHighPurity)
+    process.HLTTrackingV61Sequence.remove(process.hltPhase2PixelTracksAndHighPtStepTrackingRegions)
+    process.HLTTrackingV61Sequence.remove(process.highPtTripletStepSequence)
     return process
 
 def customizeHLTforAlpakaTrackingOnly(process):
+    ''' main customization function. Runs tracking only
+    in two iterations (initialStep and highPtTripletStep) using patatrack pixel tracks
+    '''
     process = customizeHLTforAlpaka(process)
+    process = AlpakaHLTTrackingPath(process)
+    process.schedule = cms.Schedule(*[
+        process.HLT_AlpakaTrackingPath,
+        process.endjob_step,
+        process.outputmodule
+    ])
+    return process
+
+def customizeHLTforAlpakaTrackingOnlySingleIteration(process):
+    ''' main customization function. Runs tracking only
+    in a single iteration (initialStep) using patatrack pixelt tracks
+    '''
+    process = customizeHLTforAlpakaSingleIteration(process)
+    process = AlpakaHLTTrackingPath(process)
     process.schedule = cms.Schedule(*[
         process.HLT_AlpakaTrackingPath,
         process.endjob_step,
