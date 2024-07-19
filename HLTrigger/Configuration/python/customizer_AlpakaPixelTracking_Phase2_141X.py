@@ -26,20 +26,20 @@ def AlpakaHLTPixelRecoLocal(process):
                 backend = cms.untracked.string('')
         )
     )
-    process.hltOnlineBeamSpotDevice = cms.EDProducer('BeamSpotDeviceProducer@alpaka',
+    process.hltPhase2OnlineBeamSpotDevice = cms.EDProducer('BeamSpotDeviceProducer@alpaka',
             src = cms.InputTag('hltOnlineBeamSpot'),
             alpaka = cms.untracked.PSet(
                 backend = cms.untracked.string('')
         )
     )
-    process.siPixelClustersSoA = cms.EDProducer('SiPixelPhase2DigiToCluster@alpaka',
+    process.hltPhase2SiPixelClustersSoA = cms.EDProducer('SiPixelPhase2DigiToCluster@alpaka',
         mightGet = cms.optional.untracked.vstring,
         alpaka = cms.untracked.PSet(
             backend = cms.untracked.string('')
         )
     )
     process.siPixelClusters = cms.EDProducer('SiPixelDigisClustersFromSoAAlpakaPhase2',
-        src = cms.InputTag('siPixelClustersSoA'),
+        src = cms.InputTag('hltPhase2SiPixelClustersSoA'),
         clusterThreshold_layer1 = cms.int32(4000),
         clusterThreshold_otherLayers = cms.int32(4000),
         produceDigis = cms.bool(False),
@@ -49,9 +49,9 @@ def AlpakaHLTPixelRecoLocal(process):
         src = cms.InputTag('siPixelClusters' ),
         onDemand = cms.bool( False )
     )
-    process.siPixelRecHitsSoA = cms.EDProducer('SiPixelRecHitAlpakaPhase2@alpaka',
-        beamSpot = cms.InputTag('hltOnlineBeamSpotDevice'),
-        src = cms.InputTag('siPixelClustersSoA'),
+    process.hltPhase2SiPixelRecHitsSoA = cms.EDProducer('SiPixelRecHitAlpakaPhase2@alpaka',
+        beamSpot = cms.InputTag('hltPhase2OnlineBeamSpotDevice'),
+        src = cms.InputTag('hltPhase2SiPixelClustersSoA'),
         CPE = cms.string('PixelCPEFastParamsPhase2'),
         mightGet = cms.optional.untracked.vstring,
         # autoselect the alpaka backend
@@ -60,16 +60,16 @@ def AlpakaHLTPixelRecoLocal(process):
         )
     )
     process.siPixelRecHits = cms.EDProducer('SiPixelRecHitFromSoAAlpakaPhase2',
-        pixelRecHitSrc = cms.InputTag('siPixelRecHitsSoA'),
+        pixelRecHitSrc = cms.InputTag('hltPhase2SiPixelRecHitsSoA'),
         src = cms.InputTag('siPixelClusters'),
     )
 
     process.HLTDoLocalPixelSequence = cms.Sequence(
-         process.siPixelClustersSoA
+         process.hltPhase2SiPixelClustersSoA
         +process.siPixelClusters
         +process.siPixelClusterShapeCache  # should we disable this? Still needed by tracker muons
         #+process.siPixelDigis             # not needed when copying digis from sim
-        +process.siPixelRecHitsSoA
+        +process.hltPhase2SiPixelRecHitsSoA
         +process.siPixelRecHits
     )
     process.HLTDoLocalStripSequence = cms.Sequence(
@@ -81,7 +81,7 @@ def AlpakaHLTPixelRecoLocal(process):
     )
     process.HLTBeamSpotSequence = cms.Sequence(
          process.hltOnlineBeamSpot
-        +process.hltOnlineBeamSpotDevice
+        +process.hltPhase2OnlineBeamSpotDevice
     )
     return process
 
@@ -90,7 +90,7 @@ def AlpakaHLTPixelRecoTracking(process):
     '''
     # copied from https://github.com/cms-sw/cmssw/blob/CMSSW_14_1_X/Geometry/CommonTopologies/interface/SimplePixelTopology.h
     process.hltPhase2PixelTracksSoA = cms.EDProducer('CAHitNtupletAlpakaPhase2@alpaka',
-        pixelRecHitSrc = cms.InputTag('siPixelRecHitsSoA'),
+        pixelRecHitSrc = cms.InputTag('hltPhase2SiPixelRecHitsSoA'),
         CPE = cms.string('PixelCPEFastParamsPhase2'),
         ptmin = cms.double(0.9),
         CAThetaCutBarrel = cms.double(0.002),
