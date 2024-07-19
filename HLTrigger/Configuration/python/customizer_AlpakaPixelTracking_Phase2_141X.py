@@ -72,9 +72,6 @@ def AlpakaHLTPixelRecoLocal(process):
         +process.hltPhase2SiPixelRecHitsSoA
         +process.siPixelRecHits
     )
-    process.HLTDoLocalStripSequence = cms.Sequence(
-        process.siPhase2Clusters
-    )
     process.itLocalRecoSequence = cms.Sequence(
          process.HLTDoLocalStripSequence
         +process.HLTDoLocalPixelSequence
