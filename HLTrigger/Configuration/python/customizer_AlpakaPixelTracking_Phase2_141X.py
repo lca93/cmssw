@@ -185,15 +185,6 @@ def AlpakaHLTTrackingPath(process):
     process.HLT_AlpakaTrackingPath.insert(item=process.HLTBeginSequence         , index=len(process.HLT_AlpakaTrackingPath.moduleNames()))
     process.HLT_AlpakaTrackingPath.insert(item=process.HLTTrackingV61Sequence   , index=len(process.HLT_AlpakaTrackingPath.moduleNames()))
     process.HLT_AlpakaTrackingPath.insert(item=process.HLTEndSequence           , index=len(process.HLT_AlpakaTrackingPath.moduleNames()))
-
-    process.FEVTDEBUGHLTEventContent.outputCommands.append('keep *_siPixelClusters_*_reHLT')
-    process.FEVTDEBUGHLTEventContent.outputCommands.append('keep *_siPixelRecHits_*_reHLT')
-    process.FEVTDEBUGHLTEventContent.outputCommands.append('keep *_hltPhase2PixelTracks_*_reHLT')
-    process.FEVTDEBUGHLTEventContent.outputCommands.append('keep *_generalTracks_*_reHLT')
-    process.FEVTDEBUGHLTEventContent.outputCommands.append('drop IntermediateHitDoublets_hltElePixelHitDoubletsL1Seeded__reHLT')            # remove warning
-    process.FEVTDEBUGHLTEventContent.outputCommands.append('drop IntermediateHitDoublets_hltElePixelHitDoubletsUnseeded__reHLT')            # remove warning
-    process.FEVTDEBUGHLTEventContent.outputCommands.append('drop RegionsSeedingHitSets_hltElePixelHitDoubletsForTripletsL1Seeded__reHLT')   # remove warning
-    process.FEVTDEBUGHLTEventContent.outputCommands.append('drop RegionsSeedingHitSets_hltElePixelHitDoubletsForTripletsUnseeded__reHLT')   # remove warning
     process.outputmodule = cms.EndPath(process.FEVTDEBUGHLToutput)
     process.schedule.insert(-4, process.HLT_AlpakaTrackingPath)
     return process
