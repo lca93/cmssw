@@ -23,11 +23,12 @@ siPixelClusters = cms.EDProducer("SiPixelClusterProducer",
     src = cms.InputTag("simSiPixelDigis","Pixel")
 )
 
-from Configuration.ProcessModifiers.alpakaTrackingPhase2_cff import alpakaTrackingPhase2
-alpakaTrackingPhase2.toReplaceWith(siPixelClusters, cms.EDProducer('SiPixelDigisClustersFromSoAAlpakaPhase2',
+from Configuration.ProcessModifiers.alpaka_cff import alpaka
+_siPixelClusters = cms.EDProducer('SiPixelDigisClustersFromSoAAlpakaPhase2',
     src = cms.InputTag('hltPhase2SiPixelClustersSoA'),
     clusterThreshold_layer1 = cms.int32(4000),
     clusterThreshold_otherLayers = cms.int32(4000),
     produceDigis = cms.bool(False),
     storeDigis = cms.bool(False)
-))
+)
+alpaka.toReplaceWith(siPixelClusters, _siPixelClusters.clone())

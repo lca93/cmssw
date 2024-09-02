@@ -4,10 +4,10 @@ from ..modules.hltOnlineBeamSpot_cfi import *
 
 HLTBeamSpotSequence = cms.Sequence(hltOnlineBeamSpot)
 
-from Configuration.ProcessModifiers.alpakaTrackingPhase2_cff import alpakaTrackingPhase2
+from Configuration.ProcessModifiers.alpaka_cff import alpaka
 from ..modules.hltPhase2OnlineBeamSpotDevice_cfi import hltPhase2OnlineBeamSpotDevice
 _HLTBeamSpotSequence = cms.Sequence(
      hltOnlineBeamSpot
     +hltPhase2OnlineBeamSpotDevice
 )
-alpakaTrackingPhase2.toReplaceWith(HLTBeamSpotSequence, _HLTBeamSpotSequence)
+alpaka.toReplaceWith(HLTBeamSpotSequence, _HLTBeamSpotSequence)

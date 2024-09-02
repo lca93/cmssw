@@ -6,8 +6,9 @@ siPixelRecHits = cms.EDProducer("SiPixelRecHitConverter",
     src = cms.InputTag("siPixelClusters")
 )
 
-from Configuration.ProcessModifiers.alpakaTrackingPhase2_cff import alpakaTrackingPhase2
-alpakaTrackingPhase2.toReplaceWith(siPixelRecHits, cms.EDProducer('SiPixelRecHitFromSoAAlpakaPhase2',
+from Configuration.ProcessModifiers.alpaka_cff import alpaka
+_siPixelRecHits = cms.EDProducer('SiPixelRecHitFromSoAAlpakaPhase2',
     pixelRecHitSrc = cms.InputTag('hltPhase2SiPixelRecHitsSoA'),
     src = cms.InputTag('siPixelClusters'),
-))
+)
+alpaka.toReplaceWith(siPixelRecHits, _siPixelRecHits.clone())

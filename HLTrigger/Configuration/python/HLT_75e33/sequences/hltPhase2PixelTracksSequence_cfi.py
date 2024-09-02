@@ -10,7 +10,7 @@ from ..modules.hltPhase2PixelTracksSeedLayers_cfi import *
 
 hltPhase2PixelTracksSequence = cms.Sequence(hltPhase2PixelTracksSeedLayers+hltPhase2PixelTracksAndHighPtStepTrackingRegions+hltPhase2PixelTracksHitDoublets+hltPhase2PixelTracksHitSeeds+hltPhase2PixelFitterByHelixProjections+hltPhase2PixelTrackFilterByKinematics+hltPhase2PixelTracks)
 
-from Configuration.ProcessModifiers.alpakaTrackingPhase2_cff import alpakaTrackingPhase2
+from Configuration.ProcessModifiers.alpaka_cff import alpaka
 from ..sequences.HLTBeamSpotSequence_cfi import HLTBeamSpotSequence
 from ..modules.hltPhase2PixelTracksSoA_cfi import hltPhase2PixelTracksSoA
 _hltPhase2PixelTracksSequence = cms.Sequence(
@@ -21,4 +21,4 @@ _hltPhase2PixelTracksSequence = cms.Sequence(
   +hltPhase2PixelTracksSoA
   +hltPhase2PixelTracks
 )
-alpakaTrackingPhase2.toReplaceWith(hltPhase2PixelTracksSequence, _hltPhase2PixelTracksSequence)
+alpaka.toReplaceWith(hltPhase2PixelTracksSequence, _hltPhase2PixelTracksSequence)
