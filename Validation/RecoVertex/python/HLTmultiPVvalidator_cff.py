@@ -33,7 +33,7 @@ hltPixelPVanalysis = hltMultiPVanalysis.clone(
 )
 
 def _modifyPixelPVanalysisForPhase2(pvanalysis):
-    pvanalysis.vertexRecoCollections = ["hltPhase2PixelVertices"]
+    pvanalysis.vertexRecoCollections = ["hltPhase2PixelVertices","hltTrimmedPixelVertices"]
 
 from Configuration.Eras.Modifier_phase2_tracker_cff import phase2_tracker
 phase2_tracker.toModify(hltPixelPVanalysis, _modifyPixelPVanalysisForPhase2)
